@@ -49,34 +49,34 @@ class AnswerGenerator(ABC):
         pass
 
 # your code
-class StubbornAnswerGenerator(ABC):
+class StubbornAnswerGenerator(AnswerGenerator):
     def generate_answer(self, topic: clarify_types.Topic, facet: clarify_types.Facet, cooperativeness: float, similarity: float) -> str:
         return "no"
 ```
 
 ## Citing
 
-If you this code in your work, please cite:
+If you use this code in your work, please cite:
 
 ```
 @InProceedings{salleetal2021cosearcher,
-author="Salle, Alexandre
-and Malmasi, Shervin
-and Rokhlenko, Oleg
-and Agichtein, Eugene",
-editor="Hiemstra, Djoerd
-and Moens, Marie-Francine
-and Mothe, Josiane
-and Perego, Raffaele
-and Potthast, Martin
-and Sebastiani, Fabrizio",
-title="Studying the Effectiveness of Conversational Search Refinement Through User Simulation",
-booktitle="Advances in  Information Retrieval",
-year="2021",
-publisher="Springer International Publishing",
-address="Cham",
-pages="587--602",
-abstract="A key application of conversational search is refining a user's search intent by asking a series of clarification questions, aiming to improve the relevance of search results. Training and evaluating such conversational systems currently requires human participation, making it unfeasible to examine a wide range of user behaviors. To support robust training/evaluation of such systems, we propose a simulation framework called CoSearcher (Information about code/resources available at https://github.com/alexandres/CoSearcher.) that includes a parameterized user simulator controlling key behavioral factors like cooperativeness and patience. Using a standard conversational query clarification benchmark, we experiment with a range of user behaviors, semantic policies, and dynamic facet generation. Our results quantify the effects of user behaviors, and identify critical conditions required for conversational search refinement to be effective.",
-isbn="978-3-030-72113-8"
+    author="Salle, Alexandre
+    and Malmasi, Shervin
+    and Rokhlenko, Oleg
+    and Agichtein, Eugene",
+    editor="Hiemstra, Djoerd
+    and Moens, Marie-Francine
+    and Mothe, Josiane
+    and Perego, Raffaele
+    and Potthast, Martin
+    and Sebastiani, Fabrizio",
+    title="Studying the Effectiveness of Conversational Search Refinement Through User Simulation",
+    booktitle="Advances in  Information Retrieval",
+    year="2021",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="587--602",
+    abstract="A key application of conversational search is refining a user's search intent by asking a series of clarification questions, aiming to improve the relevance of search results. Training and evaluating such conversational systems currently requires human participation, making it unfeasible to examine a wide range of user behaviors. To support robust training/evaluation of such systems, we propose a simulation framework called CoSearcher (Information about code/resources available at https://github.com/alexandres/CoSearcher.) that includes a parameterized user simulator controlling key behavioral factors like cooperativeness and patience. Using a standard conversational query clarification benchmark, we experiment with a range of user behaviors, semantic policies, and dynamic facet generation. Our results quantify the effects of user behaviors, and identify critical conditions required for conversational search refinement to be effective.",
+    isbn="978-3-030-72113-8"
 }
 ```
