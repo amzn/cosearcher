@@ -1,0 +1,9 @@
+krovetzstemmer
+nltk
+requests
+tqdm
+scipy
+pandas
+transformers
+scikit-learn
+trectools

@@ -1,0 +1,68 @@
+@@ -2,13 +2,13 @@
+ import numpy as np
+ import re
+ import nltk
+-from utils.utils import *
++from .utils.utils import *
+ import time
+-from ql_score import ql_score
++from .ql_score import ql_score
+ import pickle
++import pathlib
+ 
+ class QL:
+-    alpha = 0.5
+     mu=1500.
+ 
+     _inverted_index = {}
+@@ -26,10 +26,12 @@
+     _total_terms = 0
+     
+     
+-    def __init__(self, do_stemming, do_stopword_removal, data_root = './', load_stats=True):
++    def __init__(self, do_stemming, do_stopword_removal, data_root = './', load_stats=True, alpha=.5):
++        self.current_topic_id = None
+         self.do_stemming = do_stemming
+         self.do_stopword_removal = do_stopword_removal
+         self.data_root = data_root
++        self.alpha = alpha
+         self._stopwords = nltk.corpus.stopwords.words('english')
+ 
+         self._term_stats_path = self.data_root + 'clueweb_stats/term_stats.pkl'
+@@ -38,7 +40,7 @@
+         self._doc_stats_path = self.data_root + 'clueweb_stats/doc_lengths'
+         self._index_path = self.data_root + 'topic_indexes/{}.pkl'
+ 
+-        if load_stats and self.do_stemming:
++        if load_stats and self.do_stemming:   
+             self._term_stats = pd.read_pickle(self._term_stats_krovetz_path)[1].to_dict()
+         elif load_stats:
+             self._term_stats = pd.read_pickle(self._term_stats_path)[1].to_dict()   
+@@ -62,6 +64,9 @@
+         
+     
+     def load_topic_index(self, topic_id):
++        if topic_id == self.current_topic_id:
++            return
++        self.current_topic_id = topic_id
+         with open(self._index_path.format(topic_id), 'rb') as inp:
+             self._inverted_index = pickle.load(inp)
+         if self.do_stopword_removal:            
+@@ -71,14 +76,12 @@
+                         self._inverted_index[doc]['length'] -= self._inverted_index[doc]['terms'][stopw]
+         
+         
+-    def update_query_lang_model(self, query, question, answer):   
++    def update_query_lang_model(self, query, question="", answer=""):   
++        # print(query, question)
+         output = {}
+         
+         query_tokens, qlen = self._preprocess(query)
+-        if type(question) == str:
+-            other_tokens, other_len = self._preprocess(question + ' ' + answer)
+-        else:
+-            other_tokens, other_len = self._preprocess(question + answer)
++        other_tokens, other_len = self._preprocess((question + ' ' + answer).strip())
+ #         answer_tokens, ans_len = self._preprocess(answer)
+ 
+         all_tokens = set(list(query_tokens.keys()) + list(other_tokens.keys()))        

@@ -1,0 +1,22 @@
+@@ -3,8 +3,8 @@
+ from os import listdir
+ from os.path import isfile, join
+ import nltk
+-from nltk.stem.porter import PorterStemmer
+-# from krovetzstemmer import Stemmer as KrovetzStemmer #TODO: uncomment after installing the krovetz setmmer.
++# from nltk.stem.porter import PorterStemmer
++from krovetzstemmer import Stemmer as KrovetzStemmer #TODO: uncomment after installing the krovetz setmmer.
+ import re
+ import os, shutil
+ 
+@@ -37,8 +37,8 @@
+ 
+ def tokenize_and_stem(text):
+     # first tokenize by sentence, then by word to ensure that punctuation is caught as it's own token
+-    # stemmer = KrovetzStemmer()
+-    stemmer = PorterStemmer() # TODO: comment this and uncomment the line above after installing the krovetz stemmer
++    stemmer = KrovetzStemmer()
++    # stemmer = PorterStemmer() # TODO: comment this and uncomment the line above after installing the krovetz stemmer
+     text = text.lower()
+     tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
+     filtered_tokens = []

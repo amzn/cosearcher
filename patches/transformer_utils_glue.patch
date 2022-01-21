@@ -1,0 +1,216 @@
+@@ -24,7 +24,10 @@
+ from io import open
+ 
+ from scipy.stats import pearsonr, spearmanr
+-from sklearn.metrics import matthews_corrcoef, f1_score
++import sklearn.metrics
++from sklearn.metrics import matthews_corrcoef, f1_score, precision_score
++import scipy.special
++import numpy as np
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -87,6 +90,16 @@
+                 lines.append(line)
+             return lines
+ 
++class DictDataProcessor(DataProcessor):
++    @classmethod
++    def _read_tsv(cls, input_file, quotechar=None):
++        """Reads a tab separated value file."""
++        with open(input_file, "r", encoding="utf-8-sig") as f:
++            reader = csv.DictReader(f, delimiter="\t")
++            lines = []
++            for line in reader:
++                lines.append(line)
++            return lines
+ 
+ class MrpcProcessor(DataProcessor):
+     """Processor for the MRPC data set (GLUE version)."""
+@@ -120,6 +133,43 @@
+                 InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+         return examples
+ 
++class QulacYesNoProcessor(DictDataProcessor):
++    """Processor for the MRPC data set (GLUE version)."""
++
++    def get_train_examples(self, data_dir):
++        """See base class."""
++        logger.info("LOOKING AT {}".format(os.path.join(data_dir, "train.tsv")))
++        return self._create_examples(
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++
++    def get_dev_examples(self, data_dir):
++        """See base class."""
++        return self._create_examples(
++            self._read_tsv(os.path.join(data_dir, "valid.tsv")), "dev")
++
++    def get_labels(self):
++        """See base class."""
++        return ["0", "1"]
++
++    def _create_examples(self, lines, set_type):
++        """Creates examples for the training and dev sets."""
++        examples = []
++        for (i, line) in enumerate(lines):
++            if i == 0:
++                continue
++            guid = "%s-%s" % (set_type, i)
++            text_a = line['facet']
++            text_b = line['q']
++            label = line['label']
++            examples.append(
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++        return examples
++
++
++class QulacBingProcessor(QulacYesNoProcessor):
++    def get_labels(self):
++        """See base class."""
++        return [None] # [None] is for regression
+ 
+ class MnliProcessor(DataProcessor):
+     """Processor for the MultiNLI data set (GLUE version)."""
+@@ -422,12 +472,14 @@
+             tokens_b = tokenizer.tokenize(example.text_b)
+             # Modifies `tokens_a` and `tokens_b` in place so that the total
+             # length is less than the specified length.
+-            # Account for [CLS], [SEP], [SEP] with "- 3"
+-            _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
++            # Account for [CLS], [SEP], [SEP] with "- 3". " -4" for RoBERTa.
++            special_tokens_count = 4 if sep_token_extra else 3
++            _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - special_tokens_count)
+         else:
+-            # Account for [CLS] and [SEP] with "- 2"
+-            if len(tokens_a) > max_seq_length - 2:
+-                tokens_a = tokens_a[:(max_seq_length - 2)]
++            # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
++            special_tokens_count = 3 if sep_token_extra else 2
++            if len(tokens_a) > max_seq_length - special_tokens_count:
++                tokens_a = tokens_a[:(max_seq_length - special_tokens_count)]
+ 
+         # The convention in BERT is:
+         # (a) For sequence pairs:
+@@ -530,6 +582,48 @@
+ def simple_accuracy(preds, labels):
+     return (preds == labels).mean()
+ 
++def my_softmax(X, theta = 1.0, axis = None):
++    """
++    Compute the softmax of each element along an axis of X.
++
++    Parameters
++    ----------
++    X: ND-Array. Probably should be floats.
++    theta (optional): float parameter, used as a multiplier
++        prior to exponentiation. Default = 1.0
++    axis (optional): axis to compute values along. Default is the
++        first non-singleton axis.
++
++    Returns an array the same size as X. The result will sum to 1
++    along the specified axis.
++    """
++
++    # make X at least 2d
++    y = np.atleast_2d(X)
++
++    # find axis
++    if axis is None:
++        axis = next(j[0] for j in enumerate(y.shape) if j[1] > 1)
++
++    # multiply y against the theta parameter,
++    y = y * float(theta)
++
++    # subtract the max for numerical stability
++    y = y - np.expand_dims(np.max(y, axis = axis), axis)
++
++    # exponentiate y
++    y = np.exp(y)
++
++    # take the sum along the specified axis
++    ax_sum = np.expand_dims(np.sum(y, axis = axis), axis)
++
++    # finally: divide elementwise
++    p = y / ax_sum
++
++    # flatten if X was 1D
++    if len(X.shape) == 1: p = p.flatten()
++
++    return p
+ 
+ def acc_and_f1(preds, labels):
+     acc = simple_accuracy(preds, labels)
+@@ -540,6 +634,28 @@
+         "acc_and_f1": (acc + f1) / 2,
+     }
+ 
++def acc_and_f1_thresholded(preds, labels):
++    # import pdb
++    # pdb.set_trace()
++    preds = my_softmax(preds, axis=1)[:, 1]
++    # preds = scipy.special.expit(preds[:, 1])
++    acc = ((preds > .5) == labels).mean()
++    f1 = f1_score(y_true=labels, y_pred=preds > .5)
++    f1s = []
++    for pos_threshold in np.arange(0, 1, .01):
++        this_preds = preds >= pos_threshold
++        f1s.append((sklearn.metrics.f1_score(labels, this_preds), 
++            pos_threshold,
++            sklearn.metrics.precision_score(labels, this_preds),
++            sklearn.metrics.recall_score(labels, this_preds),
++            ))
++    return {
++        "acc": acc,
++        "f1": f1,
++        "acc_and_f1": (acc + f1) / 2,
++        "f1s": f1s,
++    }
++ 
+ 
+ def pearson_and_spearman(preds, labels):
+     pearson_corr = pearsonr(preds, labels)[0]
+@@ -551,7 +667,7 @@
+     }
+ 
+ 
+-def compute_metrics(task_name, preds, labels):
++def compute_metrics(task_name, preds, labels, preds_scores):
+     assert len(preds) == len(labels)
+     if task_name == "cola":
+         return {"mcc": matthews_corrcoef(labels, preds)}
+@@ -573,6 +689,10 @@
+         return {"acc": simple_accuracy(preds, labels)}
+     elif task_name == "wnli":
+         return {"acc": simple_accuracy(preds, labels)}
++    elif task_name == "qulac-yesno":
++        return acc_and_f1_thresholded(preds_scores, labels)
++    elif task_name == "qulac-bing":
++        return pearson_and_spearman(preds, labels)
+     else:
+         raise KeyError(task_name)
+ 
+@@ -587,6 +707,8 @@
+     "qnli": QnliProcessor,
+     "rte": RteProcessor,
+     "wnli": WnliProcessor,
++    "qulac-yesno": QulacYesNoProcessor,
++    "qulac-bing": QulacBingProcessor,
+ }
+ 
+ output_modes = {
+@@ -600,6 +722,8 @@
+     "qnli": "classification",
+     "rte": "classification",
+     "wnli": "classification",
++    "qulac-yesno": "classification",
++    "qulac-bing": "regression",
+ }
+ 
+ GLUE_TASKS_NUM_LABELS = {
+@@ -612,4 +736,6 @@
+     "qnli": 2,
+     "rte": 2,
+     "wnli": 2,
++    "qulac-yesno": 2,
++    "qulac-bing": 4,
+ }
