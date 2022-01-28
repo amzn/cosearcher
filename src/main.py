@@ -54,6 +54,7 @@ if __name__ == "__main__":
         default="similarity",
         choices=["random", "similarity"],
     )
+    parser.add_argument("--facet-ranker-alpha", type=float, default=1.0)
     parser.add_argument("--enhanced-rep", action="store_true")
     parser.add_argument(
         "--enhanced-rep-path", type=pathlib.Path, default="data/enhanced_reps_qulac.tsv"
@@ -121,7 +122,9 @@ if __name__ == "__main__":
     question_generator = question_generation.DummyQuestionGenerator()
     informative_no_extractor = informative_no_extraction.DummyInformativeNoExtractor()
     if args.facet_ranker == "similarity":
-        facet_ranker = facet_ranking.SimilarityFacetRanker(matcher["clarify"])
+        facet_ranker = facet_ranking.SimilarityFacetRanker(
+            matcher["clarify"], alpha=args.facet_ranker_alpha
+        )
     elif args.facet_ranker == "random":
         facet_ranker = facet_ranking.RandomFacetRanker()
     else:

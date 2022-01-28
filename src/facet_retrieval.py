@@ -54,7 +54,7 @@ class EnhancedFacetsFacetRetriever(FacetRetriever):
 
 
 class QulacFacetRetriever(FacetRetriever):
-    def __init__(self, dataset: qulac.Qulac, enhanced_rep=False):
+    def __init__(self, dataset: qulac.Qulac):
         self.dataset = dataset
 
     def facets_for_topic(
@@ -92,7 +92,7 @@ class BingFacetRetriever(FacetRetriever):
                 self.cache = json.load(f)
         else:
             self.cache = {}
-        self.last_call_at = None
+        self.last_call_at = 0.0
         self.bing_sleep = bing_sleep
         self.chars = chars
 
@@ -101,7 +101,7 @@ class BingFacetRetriever(FacetRetriever):
             json.dump(self.cache, f)
 
     def expand_node(self, node: BingFacetNode):
-        for character in [None] + self.chars:
+        for character in [""] + self.chars:
             query = node.facet
             if character:
                 query += " " + character
@@ -143,8 +143,7 @@ class BingFacetRetriever(FacetRetriever):
     def _auto_suggest(self, query: str) -> tp.List[str]:
         if query in self.cache:
             return self.cache[query]
-        if self.last_call_at:
-            time.sleep(max(0, self.bing_sleep - (time.time() - self.last_call_at)))
+        time.sleep(max(0, self.bing_sleep - (time.time() - self.last_call_at)))
         host = self.endpoint
         path = "/v7.0/Suggestions"
         mkt = "en-US"
@@ -166,14 +165,3 @@ class BingFacetRetriever(FacetRetriever):
         self.cache[query] = suggestions
         self.write_cache()
         return suggestions
-
-
-if __name__ == "__main__":
-    dataset = qulac.Qulac(open("data/qulac.json"))
-    retriever = BingFacetRetriever(YOUR_API_KEY)
-    for topic in tqdm.tqdm(dataset.topics):
-        facets = retriever.facets_for_topic(topic)
-        print("topic:", topic.query)
-        for facet, rank in facets:
-            print("facet:", facet.desc)
-        print("=" * 10)

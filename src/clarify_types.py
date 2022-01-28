@@ -29,6 +29,10 @@ class Facet:
     def enhanced_rep(self, value):
         self._enhanced_rep = value
 
+    @property
+    def full_rep(self):
+        return self.desc + "\n" + self.enhanced_rep
+
     def __repr__(self):
         return self.desc
 

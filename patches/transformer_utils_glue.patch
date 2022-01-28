@@ -10,10 +10,16 @@
  
  logger = logging.getLogger(__name__)
  
-@@ -87,6 +90,16 @@
-                 lines.append(line)
-             return lines
- 
+@@ -83,7 +86,19 @@
+             lines = []
+             for line in reader:
+                 if sys.version_info[0] == 2:
+-                    line = list(unicode(cell, 'utf-8') for cell in line)
++                    line = list(unicode(cell, "utf-8") for cell in line)
++                lines.append(line)
++            return lines
++
++
 +class DictDataProcessor(DataProcessor):
 +    @classmethod
 +    def _read_tsv(cls, input_file, quotechar=None):
@@ -22,14 +28,35 @@
 +            reader = csv.DictReader(f, delimiter="\t")
 +            lines = []
 +            for line in reader:
-+                lines.append(line)
-+            return lines
+                 lines.append(line)
+             return lines
  
- class MrpcProcessor(DataProcessor):
-     """Processor for the MRPC data set (GLUE version)."""
-@@ -120,6 +133,43 @@
-                 InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+@@ -95,12 +110,14 @@
+         """See base class."""
+         logger.info("LOOKING AT {}".format(os.path.join(data_dir, "train.tsv")))
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -117,23 +134,67 @@
+             text_b = line[4]
+             label = line[0]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
          return examples
+ 
  
 +class QulacYesNoProcessor(DictDataProcessor):
 +    """Processor for the MRPC data set (GLUE version)."""
@@ -38,12 +65,14 @@
 +        """See base class."""
 +        logger.info("LOOKING AT {}".format(os.path.join(data_dir, "train.tsv")))
 +        return self._create_examples(
-+            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
 +
 +    def get_dev_examples(self, data_dir):
 +        """See base class."""
 +        return self._create_examples(
-+            self._read_tsv(os.path.join(data_dir, "valid.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "valid.tsv")), "dev"
++        )
 +
 +    def get_labels(self):
 +        """See base class."""
@@ -56,22 +85,301 @@
 +            if i == 0:
 +                continue
 +            guid = "%s-%s" % (set_type, i)
-+            text_a = line['facet']
-+            text_b = line['q']
-+            label = line['label']
++            text_a = line["facet"]
++            text_b = line["q"]
++            label = line["label"]
 +            examples.append(
-+                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
 +        return examples
 +
 +
 +class QulacBingProcessor(QulacYesNoProcessor):
 +    def get_labels(self):
 +        """See base class."""
-+        return [None] # [None] is for regression
- 
++        return [None]  # [None] is for regression
++
++
  class MnliProcessor(DataProcessor):
      """Processor for the MultiNLI data set (GLUE version)."""
-@@ -422,12 +472,14 @@
+ 
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")),
+-            "dev_matched")
++            self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")), "dev_matched"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -150,7 +211,8 @@
+             text_b = line[9]
+             label = line[-1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
+         return examples
+ 
+ 
+@@ -160,8 +222,8 @@
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv")),
+-            "dev_matched")
++            self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv")), "dev_matched"
++        )
+ 
+ 
+ class ColaProcessor(DataProcessor):
+@@ -170,12 +232,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -189,7 +253,8 @@
+             text_a = line[3]
+             label = line[1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=None, label=label)
++            )
+         return examples
+ 
+ 
+@@ -199,12 +264,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -220,7 +287,8 @@
+             text_a = line[0]
+             label = line[1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=None, label=label)
++            )
+         return examples
+ 
+ 
+@@ -230,12 +298,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -252,7 +322,8 @@
+             text_b = line[8]
+             label = line[-1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
+         return examples
+ 
+ 
+@@ -262,12 +333,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -287,7 +360,8 @@
+             except IndexError:
+                 continue
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
+         return examples
+ 
+ 
+@@ -297,13 +371,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), 
+-            "dev_matched")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev_matched"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -320,7 +395,8 @@
+             text_b = line[2]
+             label = line[-1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
+         return examples
+ 
+ 
+@@ -330,12 +406,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -352,7 +430,8 @@
+             text_b = line[2]
+             label = line[-1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
+         return examples
+ 
+ 
+@@ -362,12 +441,14 @@
+     def get_train_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
++            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
++        )
+ 
+     def get_dev_examples(self, data_dir):
+         """See base class."""
+         return self._create_examples(
+-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
++            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
++        )
+ 
+     def get_labels(self):
+         """See base class."""
+@@ -384,31 +465,37 @@
+             text_b = line[2]
+             label = line[-1]
+             examples.append(
+-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label)
++            )
+         return examples
+ 
+ 
+-def convert_examples_to_features(examples, label_list, max_seq_length,
+-                                 tokenizer, output_mode,
+-                                 cls_token_at_end=False,
+-                                 cls_token='[CLS]',
+-                                 cls_token_segment_id=1,
+-                                 sep_token='[SEP]',
+-                                 sep_token_extra=False,
+-                                 pad_on_left=False,
+-                                 pad_token=0,
+-                                 pad_token_segment_id=0,
+-                                 sequence_a_segment_id=0, 
+-                                 sequence_b_segment_id=1,
+-                                 mask_padding_with_zero=True):
+-    """ Loads a data file into a list of `InputBatch`s
+-        `cls_token_at_end` define the location of the CLS token:
+-            - False (Default, BERT/XLM pattern): [CLS] + A + [SEP] + B + [SEP]
+-            - True (XLNet/GPT pattern): A + [SEP] + B + [SEP] + [CLS]
+-        `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
++def convert_examples_to_features(
++    examples,
++    label_list,
++    max_seq_length,
++    tokenizer,
++    output_mode,
++    cls_token_at_end=False,
++    cls_token="[CLS]",
++    cls_token_segment_id=1,
++    sep_token="[SEP]",
++    sep_token_extra=False,
++    pad_on_left=False,
++    pad_token=0,
++    pad_token_segment_id=0,
++    sequence_a_segment_id=0,
++    sequence_b_segment_id=1,
++    mask_padding_with_zero=True,
++):
++    """Loads a data file into a list of `InputBatch`s
++    `cls_token_at_end` define the location of the CLS token:
++        - False (Default, BERT/XLM pattern): [CLS] + A + [SEP] + B + [SEP]
++        - True (XLNet/GPT pattern): A + [SEP] + B + [SEP] + [CLS]
++    `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
+     """
+ 
+-    label_map = {label : i for i, label in enumerate(label_list)}
++    label_map = {label: i for i, label in enumerate(label_list)}
+ 
+     features = []
+     for (ex_index, example) in enumerate(examples):
+@@ -422,12 +509,16 @@
              tokens_b = tokenizer.tokenize(example.text_b)
              # Modifies `tokens_a` and `tokens_b` in place so that the total
              # length is less than the specified length.
@@ -79,7 +387,9 @@
 -            _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
 +            # Account for [CLS], [SEP], [SEP] with "- 3". " -4" for RoBERTa.
 +            special_tokens_count = 4 if sep_token_extra else 3
-+            _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - special_tokens_count)
++            _truncate_seq_pair(
++                tokens_a, tokens_b, max_seq_length - special_tokens_count
++            )
          else:
 -            # Account for [CLS] and [SEP] with "- 2"
 -            if len(tokens_a) > max_seq_length - 2:
@@ -87,15 +397,60 @@
 +            # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
 +            special_tokens_count = 3 if sep_token_extra else 2
 +            if len(tokens_a) > max_seq_length - special_tokens_count:
-+                tokens_a = tokens_a[:(max_seq_length - special_tokens_count)]
++                tokens_a = tokens_a[: (max_seq_length - special_tokens_count)]
  
          # The convention in BERT is:
          # (a) For sequence pairs:
-@@ -530,6 +582,48 @@
- def simple_accuracy(preds, labels):
+@@ -474,11 +565,15 @@
+         padding_length = max_seq_length - len(input_ids)
+         if pad_on_left:
+             input_ids = ([pad_token] * padding_length) + input_ids
+-            input_mask = ([0 if mask_padding_with_zero else 1] * padding_length) + input_mask
++            input_mask = (
++                [0 if mask_padding_with_zero else 1] * padding_length
++            ) + input_mask
+             segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
+         else:
+             input_ids = input_ids + ([pad_token] * padding_length)
+-            input_mask = input_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
++            input_mask = input_mask + (
++                [0 if mask_padding_with_zero else 1] * padding_length
++            )
+             segment_ids = segment_ids + ([pad_token_segment_id] * padding_length)
+ 
+         assert len(input_ids) == max_seq_length
+@@ -495,18 +590,20 @@
+         if ex_index < 5:
+             logger.info("*** Example ***")
+             logger.info("guid: %s" % (example.guid))
+-            logger.info("tokens: %s" % " ".join(
+-                    [str(x) for x in tokens]))
++            logger.info("tokens: %s" % " ".join([str(x) for x in tokens]))
+             logger.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
+             logger.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
+             logger.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+             logger.info("label: %s (id = %d)" % (example.label, label_id))
+ 
+         features.append(
+-                InputFeatures(input_ids=input_ids,
+-                              input_mask=input_mask,
+-                              segment_ids=segment_ids,
+-                              label_id=label_id))
++            InputFeatures(
++                input_ids=input_ids,
++                input_mask=input_mask,
++                segment_ids=segment_ids,
++                label_id=label_id,
++            )
++        )
+     return features
+ 
+ 
+@@ -531,6 +628,51 @@
      return (preds == labels).mean()
  
-+def my_softmax(X, theta = 1.0, axis = None):
+ 
++def my_softmax(X, theta=1.0, axis=None):
 +    """
 +    Compute the softmax of each element along an axis of X.
 +
@@ -122,54 +477,61 @@
 +    y = y * float(theta)
 +
 +    # subtract the max for numerical stability
-+    y = y - np.expand_dims(np.max(y, axis = axis), axis)
++    y = y - np.expand_dims(np.max(y, axis=axis), axis)
 +
 +    # exponentiate y
 +    y = np.exp(y)
 +
 +    # take the sum along the specified axis
-+    ax_sum = np.expand_dims(np.sum(y, axis = axis), axis)
++    ax_sum = np.expand_dims(np.sum(y, axis=axis), axis)
 +
 +    # finally: divide elementwise
 +    p = y / ax_sum
 +
 +    # flatten if X was 1D
-+    if len(X.shape) == 1: p = p.flatten()
++    if len(X.shape) == 1:
++        p = p.flatten()
 +
 +    return p
- 
++
++
  def acc_and_f1(preds, labels):
      acc = simple_accuracy(preds, labels)
-@@ -540,6 +634,28 @@
-         "acc_and_f1": (acc + f1) / 2,
+     f1 = f1_score(y_true=labels, y_pred=preds)
+@@ -541,6 +683,32 @@
      }
+ 
  
 +def acc_and_f1_thresholded(preds, labels):
 +    # import pdb
 +    # pdb.set_trace()
 +    preds = my_softmax(preds, axis=1)[:, 1]
 +    # preds = scipy.special.expit(preds[:, 1])
-+    acc = ((preds > .5) == labels).mean()
-+    f1 = f1_score(y_true=labels, y_pred=preds > .5)
++    acc = ((preds > 0.5) == labels).mean()
++    f1 = f1_score(y_true=labels, y_pred=preds > 0.5)
 +    f1s = []
-+    for pos_threshold in np.arange(0, 1, .01):
++    for pos_threshold in np.arange(0, 1, 0.01):
 +        this_preds = preds >= pos_threshold
-+        f1s.append((sklearn.metrics.f1_score(labels, this_preds), 
-+            pos_threshold,
-+            sklearn.metrics.precision_score(labels, this_preds),
-+            sklearn.metrics.recall_score(labels, this_preds),
-+            ))
++        f1s.append(
++            (
++                sklearn.metrics.f1_score(labels, this_preds),
++                pos_threshold,
++                sklearn.metrics.precision_score(labels, this_preds),
++                sklearn.metrics.recall_score(labels, this_preds),
++            )
++        )
 +    return {
 +        "acc": acc,
 +        "f1": f1,
 +        "acc_and_f1": (acc + f1) / 2,
 +        "f1s": f1s,
 +    }
-+ 
- 
++
++
  def pearson_and_spearman(preds, labels):
      pearson_corr = pearsonr(preds, labels)[0]
-@@ -551,7 +667,7 @@
+     spearman_corr = spearmanr(preds, labels)[0]
+@@ -551,7 +719,7 @@
      }
  
  
@@ -178,39 +540,38 @@
      assert len(preds) == len(labels)
      if task_name == "cola":
          return {"mcc": matthews_corrcoef(labels, preds)}
-@@ -573,6 +689,10 @@
+@@ -573,9 +741,12 @@
          return {"acc": simple_accuracy(preds, labels)}
      elif task_name == "wnli":
          return {"acc": simple_accuracy(preds, labels)}
 +    elif task_name == "qulac-yesno":
 +        return acc_and_f1_thresholded(preds_scores, labels)
-+    elif task_name == "qulac-bing":
-+        return pearson_and_spearman(preds, labels)
      else:
          raise KeyError(task_name)
  
-@@ -587,6 +707,8 @@
++
+ processors = {
+     "cola": ColaProcessor,
+     "mnli": MnliProcessor,
+@@ -587,6 +758,7 @@
      "qnli": QnliProcessor,
      "rte": RteProcessor,
      "wnli": WnliProcessor,
 +    "qulac-yesno": QulacYesNoProcessor,
-+    "qulac-bing": QulacBingProcessor,
  }
  
  output_modes = {
-@@ -600,6 +722,8 @@
+@@ -600,6 +772,7 @@
      "qnli": "classification",
      "rte": "classification",
      "wnli": "classification",
 +    "qulac-yesno": "classification",
-+    "qulac-bing": "regression",
  }
  
  GLUE_TASKS_NUM_LABELS = {
-@@ -612,4 +736,6 @@
+@@ -612,4 +785,5 @@
      "qnli": 2,
      "rte": 2,
      "wnli": 2,
 +    "qulac-yesno": 2,
-+    "qulac-bing": 4,
  }

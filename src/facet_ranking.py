@@ -42,23 +42,33 @@ class RandomFacetRanker(FacetRanker):
 
 
 class SimilarityFacetRanker(FacetRanker):
-    def __init__(self, matcher: match.SentenceMatcher):
+    def __init__(self, matcher: match.SentenceMatcher, alpha: float = 1.0):
         self.matcher = matcher
+        assert 0 <= alpha <= 1
+        self.alpha = alpha
 
     def rank_facets(
         self, state: clarify_types.ClarifyState
     ) -> tp.List[tp.Tuple[clarify_types.Facet, float]]:
         # positive context
-        if len(state.informative_no_db) == 0:
-            return state.candidate_facets_db
+        c_p = set(state.informative_no_db)
+        # negative context
+        c_n = set(facet.full_rep for facet, _ in state.dead_facets_db)
         scores = []
         for facet, _ in state.candidate_facets_db:
-            score = sum(
-                [
-                    self.matcher.similarity(facet.desc + "\n" + facet.enhanced_rep, s2)
-                    for s2 in state.informative_no_db
-                ]
-            )
+            if len(c_p) > 0 and self.alpha > 0:
+                pos_score = np.mean(
+                    [self.matcher.similarity(facet.full_rep, c) for c in c_p]
+                )
+            else:
+                pos_score = 0
+            if len(c_n) > 0 and self.alpha < 1:
+                neg_score = np.mean(
+                    [-self.matcher.similarity(facet.full_rep, c) for c in c_n]
+                )
+            else:
+                neg_score = 0
+            score = (1 - self.alpha) * neg_score + self.alpha * pos_score
             scores.append((facet, score))
         scores = sorted(scores, key=lambda x: x[1], reverse=True)
         return scores

@@ -23,21 +23,21 @@ python3 scripts/python/create_yesno_tsv.py --save $DEST
 
 python3 -m thirdparty.transformer.run_glue \
     --model_type bert \
-    --model_name_or_path bert-base-uncased \
-    --task_name qulac-bing \
+    --model_name_or_path bert-large-uncased \
     --do_train \
     --do_eval \
     --do_lower_case \
     --max_seq_length 128 \
-    --per_gpu_eval_batch_size=8   \
+    --per_gpu_eval_batch_size=32   \
     --per_gpu_train_batch_size=8   \
+    --gradient_accumulation_steps=4 \
     --learning_rate 2e-5 \
     --num_train_epochs 3.0 \
     --save_steps 0 \
     --warmup_steps .1 \
     --overwrite_output_dir \
     --evaluate_during_training \
-    --logging_steps 1000 \
+    --logging_steps 50 \
     --task_name qulac-yesno --data_dir $DEST --output_dir $DEST/transformer --overwrite_cache
 
 python3 scripts/python/create_yesno_predictions.py --model $DEST/transformer --data $DEST/valid.tsv --save $DEST/yesno_predictions_qulac.tsv
