@@ -1,6 +1,6 @@
 # CoSearcher
 
-This repository holds the source code for the ECIR2021 paper [Studying the Effectiveness of Conversational Search Refinement Through User Simulation](https://link.springer.com/chapter/10.1007%2F978-3-030-72113-8_39).
+This repository holds the source code for the ECIR 2021 paper [Studying the Effectiveness of Conversational Search Refinement Through User Simulation](https://link.springer.com/chapter/10.1007%2F978-3-030-72113-8_39).
 
 ## Installation
 
@@ -56,7 +56,7 @@ class StubbornAnswerGenerator(AnswerGenerator):
 
 ## Citing
 
-If you this code in your work, please cite:
+If you use this code in your work, please cite:
 
 ```
 @InProceedings{salleetal2021cosearcher,
