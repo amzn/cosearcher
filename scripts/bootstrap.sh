@@ -11,9 +11,10 @@
 #  OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
 #  and limitations under the License.
 
+set -xe
 
-patch src/thirdparty/lexvec.py < patches/lexvec.patch
-patch src/thirdparty/ql/QL.py < patches/ql_QL.patch
-patch src/thirdparty/ql/utils/utils.py < patches/ql_utils.patch
-patch src/thirdparty/transformer/run_glue.py < patches/transformer_run_glue.patch
-patch src/thirdparty/transformer/utils_glue.py < patches/transformer_utils_glue.patch
+scripts/download_data.sh
+scripts/download_code.sh
+scripts/apply_patches.sh
+# train the BERT yes/no classifier
+scripts/paper_yesno.sh
