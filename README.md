@@ -7,12 +7,7 @@ This repository holds the source code for the ECIR 2021 paper [Studying the Effe
 ```sh
 git clone https://github.com/amzn/cosearcher
 cd cosearcher
-scripts/download_data.sh
-scripts/download_code.sh
-scripts/apply_patches.sh
-pip3 install -r requirements.txt
-# train the BERT yes/no classifier
-scripts/paper_yesno.sh
+scripts/bootstrap.sh
 ```
 
 ## Usage
